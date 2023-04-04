@@ -61,3 +61,51 @@ The method's results without object supervision:
 - PON: https://github.com/tom-roddick/mono-semantic-maps
 
 
+
+## Expected Folder structure
+```
+(CV) ➜ ~/Personal/lss tree nuscenes -L 2
+nuscenes
+├── mini
+│   ├── maps
+│   ├── samples
+│   ├── sweeps
+│   └── v1.0-mini
+└── trainval
+    ├── maps
+    ├── samples
+    └── v1.0-trainval
+
+9 directories, 0 files
+(CV) ➜ ~/Personal/lss tree nuscenes/mini/v1.0-mini -L 2
+nuscenes/mini/v1.0-mini
+├── attribute.json
+├── calibrated_sensor.json
+├── category.json
+├── ego_pose.json
+├── instance.json
+├── log.json
+├── map.json
+├── sample_annotation.json
+├── sample_data.json
+├── sample.json
+├── scene.json
+├── sensor.json
+└── visibility.json
+
+0 directories, 13 files
+(CV) ➜ ~/Personal/lss tree nuscenes/mini/v1.0-mini -L 2
+(CV) ➜ ~/Personal/lss lt nuscenes/mini/maps/
+total 5.6M
+drwxr-xr-x 2 ramu ramu 4.0K Nov 23  2020 expansion
+-rw-r--r-- 1 ramu ramu 1.8M Mar 22  2019 93406b464a165eaba6d9de76ca09f5da.png
+-rw-r--r-- 1 ramu ramu 1.1M Mar 22  2019 53992ee3023e5494b90c316c183be829.png
+-rw-r--r-- 1 ramu ramu 1.4M Mar 22  2019 37819e65e09e5547b8a3ceaefba56bb2.png
+-rw-r--r-- 1 ramu ramu 1.5M Mar 22  2019 36092f0b03a857c6a3403e25b4b7aab3.png
+(CV) ➜ ~/Personal/lss lt nuscenes/mini/maps/expansion
+total 47M
+-rwxrwxr-x 1 ramu ramu  16M Nov 19  2020 boston-seaport.json
+-rwxrwxr-x 1 ramu ramu  14M Nov 19  2020 singapore-onenorth.json
+-rw-rw-r-- 1 ramu ramu 7.9M Nov 23  2020 singapore-hollandvillage.json
+-rw-rw-r-- 1 ramu ramu  11M Nov 23  2020 singapore-queenstown.json
+```

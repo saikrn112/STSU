@@ -215,7 +215,8 @@ only_bev_pe=False
 
 num_object_classes = 8
 
-base_dir = '/cluster/work/cvl/cany/lanefinder'
+#base_dir = '/cluster/work/cvl/cany/lanefinder'
+base_dir = '../stsu_run/'
 
 
 def main():
@@ -430,7 +431,9 @@ def main():
 
     # epoch, best_iou, iteration = load_checkpoint(os.path.join('/scratch_net/catweazle/cany/simplice/maxi_objectsFalse_BASE_gt_train', 'temp.pth'),
     #                               model)
-    epoch, best_iou, iteration = load_checkpoint(os.path.join(base_dir, 'maxi_poly_loss_split_True_refineTrue', 'keep', 'latest.pth'),
+#    epoch, best_iou, iteration = load_checkpoint(os.path.join(base_dir, 'maxi_poly_loss_split_True_refineTrue', 'keep', 'latest.pth'),
+#                                  model)
+    epoch, best_iou, iteration = load_checkpoint(os.path.join(base_dir, 'transformer.pth'),
                                   model)
     
     logging.error('LOADED MY CHECKPOINT')

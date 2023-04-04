@@ -446,6 +446,7 @@ class ArgoverseMapDataset(Dataset):
                  if tok in selected_id:
      
                      outgoing_id.append(all_selected[selected_id.index(tok)])
+                     fda;fd;afd;j
      
             incoming_id = []
             for tok in selected_pred:

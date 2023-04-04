@@ -6,6 +6,8 @@ Created on Fri Feb 12 16:07:33 2021
 @author: cany
 """
 
+import sys
+sys.path.insert(1,'../../../')
 from src.data.nuscenes import utils as nusc_utils
 
 import numpy as np
@@ -71,12 +73,12 @@ camera_matrix_dict['singapore-hollandvillage'] = np.array([[ 5.68477868e-03, -5.
 augment_steps=[0.5,1,1.5,2]
 my_dict = dict()
 
-for loc in intrinsic_dict.item().keys():
+for loc in intrinsic_dict.keys():
     my_list = []
     for k in augment_steps:
 
-        write_row, write_col, total_mask = nusc_utils.zoom_augment_grids((900,1600,3),intrinsic_dict.item().get(loc),
-                                                                                 camera_matrix_dict.item().get(loc)[:3,-1], k)
+        write_row, write_col, total_mask = nusc_utils.zoom_augment_grids((900,1600,3),intrinsic_dict[loc],
+                                                                                 camera_matrix_dict[loc][:3,-1], k)
         
         
         temp = np.stack([write_row.flatten(),write_col.flatten(),total_mask.flatten()],axis=-1)
@@ -86,4 +88,4 @@ for loc in intrinsic_dict.item().keys():
 
 
 
-np.save('zoom_sampling_dict.npy', my_dict)
+np.save('../../../../stsu_run/zoom_sampling_dict.npy', my_dict)

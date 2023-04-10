@@ -11,7 +11,7 @@ from src.data.utils import transform_polygon, render_polygon, transform
 import cv2
 import time
 CAMERA_NAMES = ['CAM_FRONT']
-# CAMERA_NAMES = ['CAM_FRONT', 'CAM_FRONT_LEFT', 'CAM_FRONT_RIGHT', 
+#CAMERA_NAMES = ['CAM_FRONT', 'CAM_FRONT_LEFT', 'CAM_FRONT_RIGHT', 
 #                 'CAM_BACK_LEFT', 'CAM_BACK_RIGHT', 'CAM_BACK']
 
 NUSCENES_CLASS_NAMES = [
@@ -283,7 +283,7 @@ def get_centerlines(nuscenes, new_ar, sample_data, extents, resolution, vis_mask
     
     tfm = get_sensor_transform(nuscenes, sample_data)[[0, 1, 3]][:, [0, 2, 3]]
     
-    my_thresh = 100
+    my_thresh = 200
     
     my_x = tfm[0,-1]
     my_y = tfm[1,-1] 

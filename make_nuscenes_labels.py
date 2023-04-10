@@ -202,6 +202,7 @@ if __name__ == '__main__':
     my_map_apis = { location : NuScenesMap(dataroot, location) 
              for location in nusc_utils.LOCATIONS }
     
+    # TOREAD
     all_centers = {location : my_map_apis[location].discretize_centerlines(0.25)
              for location in nusc_utils.LOCATIONS}
     

@@ -833,6 +833,7 @@ def visual_est(images,targets,save_path,name=None):
                 coef_all_roads = np.uint8(np.clip(coef_all_roads,0,1)*255)
                 temp_img = Image.fromarray(coef_all_roads)
                 temp_img.save(os.path.join(save_path,'batch_'+str(b) + '_est_coef_all_roads.jpg' ))       
+                logging.error('came here to save as well')
             else:
                 
                 all_roads = np.uint8(np.clip(all_roads,0,1)*255)
@@ -842,6 +843,8 @@ def visual_est(images,targets,save_path,name=None):
                 coef_all_roads = np.uint8(np.clip(coef_all_roads,0,1)*255)
                 temp_img = Image.fromarray(coef_all_roads)
                 temp_img.save(os.path.join(save_path,name + '_est_coef_all_roads.jpg' ))    
+                print(os.path.join(save_path,name + '_est_coef_all_roads.jpg' ))
+                logging.error('came here to save')
 
 def plot_obj_img_centers(images,obj_img_centers):
     
@@ -1575,6 +1578,7 @@ def save_results_eval(image,out,out_objects, targets, static_inter_dict, object_
     
     # save_matched_results(static_inter_dict,targets[0],static_target_ids,config,base_path)
     # out = get_selected_estimates(out, thresh = 0.5)
+    logging.error('trying to save')
     try:
         visual_masks_gt(np.uint8(image),targets,base_path,name='_')
     except Exception as e:
@@ -1589,6 +1593,7 @@ def save_results_eval(image,out,out_objects, targets, static_inter_dict, object_
         visual_object_est(np.uint8(image),out_objects,base_path,vis_mask = all_masks,name='_')
     except Exception as e:
             logging.error("PROBLEM IN VISUAL OBJECT VAL SAVE: " + str(e))
+    exit(1)
 def img_saver(img,path):
     img = Image.fromarray(np.uint8(img))
     img.save(path)

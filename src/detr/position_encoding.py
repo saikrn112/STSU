@@ -44,8 +44,9 @@ class PositionEmbeddingSine(nn.Module):
          
             f = calib[0,0]
             y_center = calib[1,-1]
+            x_center = calib[0,-1]
             y_embed = cam_height*f/(cur_y - y_center + 0.1)
-            x_embed = (y_embed*cur_x - calib[0,-1]*y_embed)/f
+            x_embed = y_embed * (cur_x - x_center)/f
             
             to_remove = (y_embed < 0) | (y_embed > self.y_limit)
             

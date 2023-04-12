@@ -986,12 +986,12 @@ def build(args,config,params):
     num_object_classes = args.num_object_classes
     device = torch.device(args.device)
 
-    backbone = build_backbone(args)
+    backbone = build_backbone(args) ## TODO1
     resampler1 = Resampler(4*config.map_resolution, config.map_extents)
     
     resampler2 = Resampler(2*config.map_resolution, config.map_extents)
     
-    transformer = build_transformer(args)
+    transformer = build_transformer(args) ## TODO2
 
     model = DETR(
         backbone,

@@ -55,7 +55,7 @@ class Joiner(nn.Sequential):
         super().__init__(backbone, position_embedding)
         self.backbone_net = backbone
     def forward(self, images, calib,abs_bev=True):
-        xs, low = self[0](images)
+        xs, low = self[0](images) ##TODO
         out= []
         low_out = []
         pos = []

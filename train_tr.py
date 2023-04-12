@@ -776,7 +776,7 @@ def main():
         
         logging.error('LOADED MY CHECKPOINT')
     
-    freeze_backbone_layers(model)
+    freeze_backbone_layers(model) ## TODO3
    
     confusion = BinaryConfusionMatrix(1,args.num_object_classes)
             

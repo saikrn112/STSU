@@ -7,7 +7,7 @@ train_dataset: nuscenes
 # train_dataset: argoverse
 
 # nusc_root: /cluster/scratch/cany/nuScenes
-nusc_root: ../nuscenes/mini/
+nusc_root: /scratch/msingh2/nuscenes/mini/
 nuscenes_version: v1.0-mini
 
 

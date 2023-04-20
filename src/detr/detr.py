@@ -505,6 +505,7 @@ class SetCriterion(nn.Module):
         lab = targets[0]['con_matrix']
         lab = lab.float()
         lab = lab[target_ids,:]
+        print(f"lab:{lab.shape}")
         lab = lab[:,target_ids]
         
         est = outputs['pred_assoc']
@@ -790,14 +791,18 @@ class SetCriterion(nn.Module):
         
 #        _, target_ids = self._get_tgt_permutation_idx(indices)
         
-        assoc_features = torch.squeeze(outputs['assoc_features'])
-        
-        
+        print(f"before assoc_features:{outputs['assoc_features'].shape}")
+        #assoc_features = torch.squeeze(outputs['assoc_features'])
+        assoc_features = outputs['assoc_features']
+        print(f"after assoc_features:{assoc_features.shape}")
             
-        selected_features = assoc_features[idx]
+        selected_features = assoc_features[:,idx]
+        print(f"selected_features:{selected_features.shape}")
         
-        reshaped_features1 = torch.unsqueeze(selected_features,dim=1).repeat(1,selected_features.size(0),1)
-        reshaped_features2 = torch.unsqueeze(selected_features,dim=0).repeat(selected_features.size(0),1,1)
+        reshaped_features1 = torch.unsqueeze(selected_features,dim=2).repeat(1,1,selected_features.size(1),1)
+        reshaped_features2 = torch.unsqueeze(selected_features,dim=1).repeat(1,selected_features.size(1),1,1)
+        print(f"reshaped_features2:{reshaped_features2.shape}")
+        print(f"reshaped_features1:{reshaped_features1.shape}")
         
         total_features = torch.cat([reshaped_features1,reshaped_features2],dim=-1)
         

@@ -92,6 +92,13 @@ def train(dataloader,dataset, model, criterion, optimiser,refiner_optimiser, pos
         data_loading_times.append(time2-time3)
         
         outputs = model(seq_images,cuda_targets[0]['calib'], targets[0]['left_traffic'])
+        print(outputs.keys())
+        print(outputs['pred_boxes'].shape)
+        print(outputs['pred_endpoints'].shape)
+        print(outputs['src_features'].shape)
+        print(outputs['pred_logits'].shape)
+        print(outputs['obj_boxes'].shape)
+        print(len(cuda_targets))
         
         loss_dict = criterion(outputs, cuda_targets)
         

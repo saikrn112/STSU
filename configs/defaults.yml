@@ -7,8 +7,10 @@ train_dataset: nuscenes
 # train_dataset: argoverse
 
 # nusc_root: /cluster/scratch/cany/nuScenes
-nusc_root: /scratch/msingh2/nuscenes/mini/
-nuscenes_version: v1.0-mini
+nusc_root: /media/pear_group/data/nuscenes/train/
+#nusc_root: ../nuscenes/mini/
+#nuscenes_version: v1.0-mini
+nuscenes_version: v1.0-trainval
 
 
 argo_log_root: /srv/beegfs02/scratch/tracezuerich/data/datasets/Argoverse_v2/argoverse-tracking/all_logs

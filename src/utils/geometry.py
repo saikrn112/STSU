@@ -1,4 +1,4 @@
-from collections import Iterable
+from collections.abc import Iterable
 import torch
 
 def make_grid(grid_size, cell_size=None, grid_offset=None):

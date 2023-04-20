@@ -45,7 +45,7 @@ def train(dataloader,dataset, model, criterion, optimiser,refiner_optimiser, pos
     running_loss_dict={}
     
     time3 = time.time()
-    for i, batch in enumerate(dataloader):
+    for i, batch in enumerate(tqdm(dataloader)):
         
         if iteration % config.reset_confusion_interval == 0:
             confusion.reset()
@@ -494,7 +494,8 @@ only_bev_pe=False
 
 num_object_classes = 8
 
-base_dir = '/cluster/work/cvl/cany/lanefinder'
+#base_dir = '/cluster/work/cvl/cany/lanefinder'
+base_dir = '../stsu_run/'
 
 
 def main():
@@ -771,7 +772,7 @@ def main():
 #        epoch, best_iou, iteration = load_checkpoint(os.path.join(logdir, 'latest.pth'),
 #                                      model, optimizer, lr_scheduler)
         
-        epoch, best_iou, iteration = load_checkpoint(os.path.join(base_dir, 'maxi_poly_loss_split_True_refineTrue', 'keep', 'latest.pth'),
+        epoch, best_iou, iteration = load_checkpoint(os.path.join(base_dir, 'transformer.pth'),
                                   model, optimizer, lr_scheduler)
         
         logging.error('LOADED MY CHECKPOINT')
@@ -782,7 +783,8 @@ def main():
             
     transforms = torchvision.transforms.RandomAffine(degrees=15,translate=(0.1,0.1),scale=(0.9,1.1) )
     
-    while epoch <= config.num_epochs:
+    #while epoch <= config.num_epochs:
+    for epoch in tqdm(range(epoch, config.num_epochs)):
         
         print('\n\n=== Beginning epoch {} of {} ==='.format(epoch, 
                                                             config.num_epochs))

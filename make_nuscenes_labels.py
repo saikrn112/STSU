@@ -192,8 +192,8 @@ if __name__ == '__main__':
     dataroot = config.nusc_root
     
 #    dataroot=  '/srv/beegfs02/scratch/tracezuerich/data/datasets/nuScenes'
-    #nuscenes = NuScenes('v1.0-trainval', dataroot)
-    nuscenes = NuScenes('v1.0-mini', dataroot)
+    nuscenes = NuScenes('v1.0-trainval', dataroot)
+    #nuscenes = NuScenes('v1.0-mini', dataroot)
 
     # Preload NuScenes map data
     map_data = { location : load_map_data(dataroot, location) 

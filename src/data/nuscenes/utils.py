@@ -283,7 +283,7 @@ def get_centerlines(nuscenes, new_ar, sample_data, extents, resolution, vis_mask
     
     tfm = get_sensor_transform(nuscenes, sample_data)[[0, 1, 3]][:, [0, 2, 3]]
     
-    my_thresh = 20
+    my_thresh = 100
     
     my_x = tfm[0,-1]
     my_y = tfm[1,-1] 

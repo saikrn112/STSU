@@ -40,6 +40,11 @@ class PositionEmbeddingSine(nn.Module):
             range_x = torch.arange(self.img_size[0]).cuda()
             range_y = torch.arange(self.img_size[1]).cuda()
             cur_y, cur_x = torch.meshgrid(range_y,range_x)
+            cur_y = cur_y.unsqueeze(0)
+            cur_y = cur_y.repeat(x.shape[0],1,1)
+            cur_x = cur_x.unsqueeze(0)
+            cur_x = cur_x.repeat(x.shape[0],1,1)
+
             cam_height = 1.7
          
             f = calib[0,0]
@@ -68,23 +73,23 @@ class PositionEmbeddingSine(nn.Module):
                 y_embed[to_remove] = 1
                 y_embed[to_remove] = 1
                 
-                y_embed = torch.flip(y_embed,dims=[0])
+                y_embed = torch.flip(y_embed,dims=[1])
           
                     
                 x_embed = torch.log(x_embed)
                 
                 y_embed = torch.log(y_embed)
                 
-                y_embed = y_embed.unsqueeze(0).cumsum(1, dtype=torch.float32) 
-                x_embed = x_embed.unsqueeze(0).cumsum(2, dtype=torch.float32)
+                y_embed = y_embed.cumsum(1, dtype=torch.float32) 
+                x_embed = x_embed.cumsum(2, dtype=torch.float32)
                 
                 eps = 1e-6
                 y_embed = torch.flip(y_embed,dims=[1])
                 y_embed = y_embed / (y_embed[:,:1, :] + eps) 
                 x_embed = x_embed / (x_embed[:,:, -1:] + eps) 
                 
-                x_embed[0,to_remove] = 1
-                y_embed[0,to_remove] = 1
+                x_embed[to_remove] = 1
+                y_embed[to_remove] = 1
                 
                 x_embed = x_embed * self.scale
                 y_embed = y_embed * self.scale
@@ -102,19 +107,16 @@ class PositionEmbeddingSine(nn.Module):
                 
                 y_embed = torch.flip(y_embed,dims=[0])
                 
-     
-                
-                
-                y_embed = y_embed.unsqueeze(0).cumsum(1, dtype=torch.float32) 
-                x_embed = x_embed.unsqueeze(0).cumsum(2, dtype=torch.float32)
+                y_embed = y_embed.cumsum(1, dtype=torch.float32) 
+                x_embed = x_embed.cumsum(2, dtype=torch.float32)
                 
                 eps = 1e-6
                 y_embed = torch.flip(y_embed,dims=[1])
                 y_embed = y_embed / (y_embed[:,:1, :] + eps) 
                 x_embed = x_embed / (x_embed[:,:, -1:] + eps) 
                 
-                x_embed[0,to_remove] = 1
-                y_embed[0,to_remove] = 1
+                x_embed[to_remove] = 1
+                y_embed[to_remove] = 1
                 
                 x_embed = x_embed * self.scale
                 y_embed = y_embed * self.scale
@@ -129,7 +131,6 @@ class PositionEmbeddingSine(nn.Module):
                 eps = 1e-6
                 y_embed = y_embed / (y_embed[:, -1:, :] + eps) * self.scale
                 x_embed = x_embed / (x_embed[:, :, -1:] + eps) * self.scale
-
 
 
         dim_t = torch.arange(self.num_pos_feats, dtype=torch.float32, device=x.device)

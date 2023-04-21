@@ -93,12 +93,14 @@ def train(dataloader,dataset, model, criterion, optimiser,refiner_optimiser, pos
         
         outputs = model(seq_images,cuda_targets[0]['calib'], targets[0]['left_traffic'])
         print(outputs.keys())
+        exit(1)
         print(outputs['pred_boxes'].shape)
         print(outputs['pred_endpoints'].shape)
         print(outputs['src_features'].shape)
         print(outputs['pred_logits'].shape)
         print(outputs['obj_boxes'].shape)
         print(len(cuda_targets))
+        print(f"targetkeys:{targets[0].keys()}")
         
         loss_dict = criterion(outputs, cuda_targets)
         

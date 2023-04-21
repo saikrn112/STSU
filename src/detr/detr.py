@@ -497,18 +497,24 @@ class SetCriterion(nn.Module):
         """Classification loss (NLL)
         targets dicts must contain the key "labels" containing a tensor of dim [nb_target_boxes]
         """
+        print(f"outputs len:{len(outputs)}")
+        print(f"targets:{len(targets)}")
         
         _, idx = self._get_src_permutation_idx(indices)
         
         _, target_ids = self._get_tgt_permutation_idx(indices)
         
+        print(targets[0]['con_matrix'].shape) # 8, 8
+        print(targets[1]['con_matrix'].shape) # 4 , 4
+        print(f"est:{outputs['pred_assoc'].shape}")
+        exit(1)
+
         lab = targets[0]['con_matrix']
         lab = lab.float()
         lab = lab[target_ids,:]
-        print(f"lab:{lab.shape}")
         lab = lab[:,target_ids]
         
-        est = outputs['pred_assoc']
+        est = outputs['pred_assoc'] # 2, 8 8
         
         mask = lab*3 + (1-lab)
         
@@ -805,10 +811,19 @@ class SetCriterion(nn.Module):
         print(f"reshaped_features1:{reshaped_features1.shape}")
         
         total_features = torch.cat([reshaped_features1,reshaped_features2],dim=-1)
+        print(f"total_features:{total_features.shape}")
+
         
         est = torch.squeeze(self.assoc_net(total_features),dim=-1)
+        print(f"outputs:{outputs.keys()}")
+        print(outputs['pred_boxes'].shape)
+        print(outputs['pred_endpoints'].shape)
+        print(outputs['src_features'].shape)
+        print(outputs['pred_logits'].shape)
+        print(outputs['obj_boxes'].shape)
         
-        outputs['pred_assoc'] = torch.unsqueeze(est,dim=0)
+        outputs['pred_assoc'] = est
+        print(f"outputs.shape:{outputs['pred_assoc'].shape}")
         
        
         

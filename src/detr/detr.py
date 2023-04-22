@@ -228,7 +228,9 @@ class DETR(nn.Module):
         calib_big = calib.clone()
         calib_big[:2,:] = calib_big[:2,:] / 4
         
-
+        ## TODO 
+        # make sure samples shape is b X C X H X W
+        ## TODO 
         features, low_features, pos, bev_pos = self.backbone(samples,calib_smallest, self.abs_bev)
         
         src = features[-1]

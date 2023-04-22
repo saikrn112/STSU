@@ -55,6 +55,13 @@ def train(dataloader,dataset, model, criterion, optimiser,refiner_optimiser, pos
             continue
         
         seq_images, targets, _ = batch
+        ## TODO
+        # get sequence images and targets for all the views 
+        # TODO
+        # come up with the some format to load squence images and targets
+        
+
+
         
                    
         cuda_targets = []

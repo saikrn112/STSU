@@ -34,7 +34,27 @@ def process_scene(nuscenes, map_data,map_api, all_centers,scene, config, loc_dic
     # Iterate over samples
     first_sample_token = scene['first_sample_token']
     for sample in nusc_utils.iterate_samples(nuscenes, first_sample_token):
+        # print(f"")
+        # if sample['token'] != "cd21dbfc3bd749c7b10a5c42562e0c42":
+        #     continue
+        print(f"sample:{sample['token']}")
+        sample_data = nuscenes.get('sample_data', sample['data']['CAM_FRONT'])
+        dataroot = '../nuscenes/mini/'
+        print(dataroot + sample_data['filename'])
+        cam_front_img = cv2.imread(dataroot + sample_data['filename'])
+        cam_left_img  = cv2.imread(dataroot + nuscenes.get('sample_data', sample['data']['CAM_FRONT_LEFT'])['filename'])
+        cam_right_img  = cv2.imread(dataroot + nuscenes.get('sample_data', sample['data']['CAM_FRONT_RIGHT'])['filename'])
+        cam_back_left_img  = cv2.imread(dataroot + nuscenes.get('sample_data', sample['data']['CAM_BACK_LEFT'])['filename'])
+        cam_back_img  = cv2.imread(dataroot + nuscenes.get('sample_data', sample['data']['CAM_BACK'])['filename'])
+        cam_back_right_img  = cv2.imread(dataroot + nuscenes.get('sample_data', sample['data']['CAM_BACK_RIGHT'])['filename'])
+        imgs = np.hstack([cam_left_img, cam_front_img, cam_right_img])
+        imgs_back = np.hstack([cam_back_left_img, cam_back_img, cam_back_right_img])
+        imgs = np.vstack([imgs, imgs_back])
+        imgs = cv2.resize(imgs, (2*600,2*250))
+        cv2.imshow("cam_front",imgs)
+            
         process_sample(nuscenes, scene_map_data, sample, config, centers, loc_dict, obj_dict, output_seg_root, output_line_root)
+        # exit(1)
 
 
 def process_sample(nuscenes, map_data, sample, config,centers,loc_dict, obj_dict, output_seg_root, output_line_root ):
@@ -99,8 +119,24 @@ def process_sample_data(nuscenes, map_data, sample_data, lidar, config,centers, 
     Image.fromarray(labels.astype(np.int32), mode='I').save(output_path)
     
     img_centers, loc_array = nusc_utils.get_centerlines(nuscenes, centers, sample_data, config.map_extents, config.map_resolution, vis_mask)
-    img_centers = np.flipud(img_centers)
-  
+    print("coming here")
+    # img_centers = np.flipud(img_centers)
+    print(sample_data['token'])
+    img_centers = cv2.normalize(img_centers, None, alpha=0, beta=255, norm_type=cv2.NORM_MINMAX, dtype=cv2.CV_8U)
+
+    # print(img_centers[80:100,95:110])
+    print(os.path.join(output_line_root,sample_data['token'] + '.png'))
+    print(img_centers.shape)
+    img_centers = cv2.rotate(img_centers, cv2.ROTATE_180)
+    img_centers = cv2.flip(img_centers, 1)
+    cv2.imshow("bullshit", img_centers)
+    cv2.imshow("vis_make", vis_mask)
+    key = cv2.waitKey(0)
+    if key == ord('q'):
+        pass 
+    elif key == 27:
+        exit(1)
+    # exit(1)
     
     cv2.imwrite(os.path.join(output_line_root,sample_data['token'] + '.png'),img_centers)
     
@@ -192,8 +228,8 @@ if __name__ == '__main__':
     dataroot = config.nusc_root
     
 #    dataroot=  '/srv/beegfs02/scratch/tracezuerich/data/datasets/nuScenes'
-    nuscenes = NuScenes('v1.0-trainval', dataroot)
-    #nuscenes = NuScenes('v1.0-mini', dataroot)
+    # nuscenes = NuScenes('v1.0-trainval', dataroot)
+    nuscenes = NuScenes('v1.0-mini', dataroot)
 
     # Preload NuScenes map data
     map_data = { location : load_map_data(dataroot, location) 

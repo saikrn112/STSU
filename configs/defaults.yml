@@ -7,10 +7,11 @@ train_dataset: nuscenes
 # train_dataset: argoverse
 
 # nusc_root: /cluster/scratch/cany/nuScenes
-nusc_root: /media/pear_group/data/nuscenes/train/
+# nusc_root: /media/pear_group/data/nuscenes/train/
+nusc_root: /media/pear_group/data/nuscenes/mini/
 #nusc_root: ../nuscenes/mini/
-#nuscenes_version: v1.0-mini
-nuscenes_version: v1.0-trainval
+nuscenes_version: v1.0-mini
+# nuscenes_version: v1.0-trainval
 
 
 argo_log_root: /srv/beegfs02/scratch/tracezuerich/data/datasets/Argoverse_v2/argoverse-tracking/all_logs
@@ -20,10 +21,10 @@ argo_seg_label_root: /srv/beegfs02/scratch/tracezuerich/data/cany/argoverse
 
 
 #line_label_root: /cluster/scratch/cany/nuscenes_stuff/lines
-line_label_root: ../stsu_run/
+line_label_root: ../stsu_run/lines/
 
 #seg_label_root: /cluster/scratch/cany/nuscenes_stuff/seg_labels
-seg_label_root: ../stsu_run/
+seg_label_root: ../stsu_run/seg_labels/
 
 nusc_num_object_class: 10
 

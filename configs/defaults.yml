@@ -1,12 +1,13 @@
 
 
 #logdir: /cluster/work/cvl/cany/lanefinder
-logdir: ../stsu_run/
+logdir: /media/pear_group/data/stsu_run/        #../stsu_run/
 
 train_dataset: nuscenes
 # train_dataset: argoverse
 
 # nusc_root: /cluster/scratch/cany/nuScenes
+# nusc_root: /media/pear_group/data/nuscenes/mini/
 nusc_root: /media/pear_group/data/nuscenes/train/
 #nusc_root: ../nuscenes/mini/
 #nuscenes_version: v1.0-mini
@@ -20,10 +21,10 @@ argo_seg_label_root: /srv/beegfs02/scratch/tracezuerich/data/cany/argoverse
 
 
 #line_label_root: /cluster/scratch/cany/nuscenes_stuff/lines
-line_label_root: ../stsu_run/
+line_label_root: /media/pear_group/data/stsu_run/lines/
 
 #seg_label_root: /cluster/scratch/cany/nuscenes_stuff/seg_labels
-seg_label_root: ../stsu_run/
+seg_label_root: /media/pear_group/data/stsu_run/lines/
 
 nusc_num_object_class: 10
 
@@ -32,21 +33,21 @@ num_bev_classes: 14
        
 load_pretrained_backbone: False
 #backbone_ckpt_path: /cluster/work/cvl/cany/lanefinder/deeplab_model.pth
-backbone_ckpt_path: ../stsu_run/
+backbone_ckpt_path: /media/pear_group/data/stsu_run/              #../stsu_run/
 
 load_original_ckpt: False
         
      
 #loc_dict_path:  /cluster/scratch/cany/nuscenes_stuff/vis_loc_dict.npy
-loc_dict_path: ../stsu_run/vis_loc_dict.npy
+loc_dict_path: /media/pear_group/data/stsu_run/vis_loc_dict.npy   #../stsu_run/vis_loc_dict.npy
 #obj_dict_path:  /cluster/scratch/cany/nuscenes_stuff/obj_dict.npy
-obj_dict_path: ../stsu_run/obj_dict.npy
+obj_dict_path: /media/pear_group/data/stsu_run/obj_dict.npy       #../stsu_run/obj_dict.npy
  
  
 argo_obj_dict_path:  /scratch_net/catweazle/cany/lanefinder/argo_obj_dict.npy
      
 #zoom_sampling_dict_path: /cluster/work/cvl/cany/lanefinder/zoom_sampling_dict.npy
-zoom_sampling_dict_path: ../stsu_run/zoom_sampling_dict.npy
+zoom_sampling_dict_path: /media/pear_group/data/stsu_run/zoom_sampling_dict.npy         #../stsu_run/zoom_sampling_dict.npy
         
 crop_lines: True
 delete_lines: False

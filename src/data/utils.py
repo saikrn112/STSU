@@ -75,7 +75,9 @@ def get_occlusion_mask(points, extents, resolution):
     depth = depth[valid]
 
     # Find the LiDAR point with maximum depth within each bin
+    # max_depth = np.zeros((max_rays,),dtype=np.int32)
     max_depth = np.zeros((max_rays,))
+
     np.maximum.at(max_depth, rayid.astype(np.int32), depth)
 
     # For each bev grid point, sample the max depth along the corresponding ray
@@ -87,6 +89,7 @@ def get_occlusion_mask(points, extents, resolution):
     # A grid position is considered occluded if the there are no LiDAR points
     # passing through it
     occluded = grid_max_depth < z
+    # occluded = max_depth
     return occluded
 
 

@@ -107,7 +107,7 @@ def train(dataloader,dataset, model, criterion, optimiser,refiner_optimiser, pos
         loss = sum(loss_dict[k] * weight_dict[k] for k in loss_dict.keys() if k in weight_dict)
         
         optimiser.zero_grad()
-        refiner_optimiser.zero_grad()
+        # refiner_optimiser.zero_grad()
         loss.backward()
         torch.nn.utils.clip_grad_norm_(model.parameters(), args.clip_max_norm)
         optimiser.step()
@@ -486,7 +486,7 @@ def freeze_backbone_layers(model):
     
 #                logging.error(str(n) + ', '+str(p.requires_grad))
 
-object_refinement = True
+object_refinement = False
 
 
 apply_poly_loss = True

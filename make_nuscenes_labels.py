@@ -104,11 +104,11 @@ def process_sample_data(nuscenes, map_data, sample_data, lidar, config,centers, 
     cam_transform = nusc_utils.get_sensor_transform(nuscenes, sample_data)
     cam_points = transform(np.linalg.inv(cam_transform), lidar)
     
-    occ_mask = np.uint8(~get_occlusion_mask(cam_points, config.map_extents,
-                                    config.map_resolution))
+    # occ_mask = np.uint8(~get_occlusion_mask(cam_points, config.map_extents,
+    #                                 config.map_resolution))
     
     
-    masks[-1] = occ_mask*vis_mask
+    # masks[-1] = occ_mask*vis_mask
     
     # Encode masks as integer bitmask
     labels = encode_binary_labels(masks)
@@ -130,7 +130,7 @@ def process_sample_data(nuscenes, map_data, sample_data, lidar, config,centers, 
     img_centers = cv2.rotate(img_centers, cv2.ROTATE_180)
     img_centers = cv2.flip(img_centers, 1)
     cv2.imshow("bullshit", img_centers)
-    cv2.imshow("vis_make", vis_mask)
+    # cv2.imshow("vis_make", vis_mask)
     key = cv2.waitKey(0)
     if key == ord('q'):
         pass 

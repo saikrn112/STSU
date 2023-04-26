@@ -832,7 +832,8 @@ def visual_est(images,targets,save_path,name=None):
                 
                 coef_all_roads = np.uint8(np.clip(coef_all_roads,0,1)*255)
                 temp_img = Image.fromarray(coef_all_roads)
-                temp_img.save(os.path.join(save_path,'batch_'+str(b) + '_est_coef_all_roads.jpg' ))       
+                temp_img.save(os.path.join(save_path,'batch_'+str(b) + '_est_coef_all_roads.jpg' ))   
+                print(os.path.join(save_path,'batch_'+str(b) + '_est_coef_all_roads.jpg' ))    
             else:
                 
                 all_roads = np.uint8(np.clip(all_roads,0,1)*255)
@@ -841,7 +842,9 @@ def visual_est(images,targets,save_path,name=None):
                 
                 coef_all_roads = np.uint8(np.clip(coef_all_roads,0,1)*255)
                 temp_img = Image.fromarray(coef_all_roads)
-                temp_img.save(os.path.join(save_path,name + '_est_coef_all_roads.jpg' ))    
+                temp_img.save(os.path.join(save_path,name + '_est_coef_all_roads.jpg' ))  
+                print(os.path.join(save_path,name + '_est_coef_all_roads.jpg' ))  
+    exit(1)
 
 def plot_obj_img_centers(images,obj_img_centers):
     

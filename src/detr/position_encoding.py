@@ -32,7 +32,9 @@ class PositionEmbeddingSine(nn.Module):
         self.x_limit = 40
         self.y_limit = 50
         
-        self.img_size = [50,28]
+        # self.img_size = [50,28]
+        self.img_size = [50,28*3]
+
 
     def forward(self,x,calib=None, bev=False, abs_bev=True):
        

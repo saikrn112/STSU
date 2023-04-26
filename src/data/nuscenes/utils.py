@@ -10,7 +10,7 @@ import logging
 from src.data.utils import transform_polygon, render_polygon, transform
 import cv2
 import time
-CAMERA_NAMES = ['CAM_FRONT']
+CAMERA_NAMES = ['CAM_FRONT', 'CAM_FRONT_LEFT', 'CAM_FRONT_RIGHT',]
 #CAMERA_NAMES = ['CAM_FRONT', 'CAM_FRONT_LEFT', 'CAM_FRONT_RIGHT', 
 #                 'CAM_BACK_LEFT', 'CAM_BACK_RIGHT', 'CAM_BACK']
 

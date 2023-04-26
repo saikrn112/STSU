@@ -120,9 +120,14 @@ class NuScenesMapDataset(Dataset):
             for sample in iterate_samples(self.nuscenes, 
                                           scene['first_sample_token']):
                 
+                                
                 # Iterate over cameras
+                # 
+                tmp_tokens = list()
                 for camera in CAMERA_NAMES:
-                    self.tokens.append(sample['data'][camera])
+                    tmp_tokens.append(sample['data'][camera])
+
+                self.tokens.append(tmp_tokens)
         
         return self.tokens
 
@@ -133,8 +138,8 @@ class NuScenesMapDataset(Dataset):
     def __getitem__(self, index):
         
         try:
-            token = self.tokens[index]
-            
+            token_list = self.tokens[index]
+            token = token_list[0]
             
             if self.apply_zoom_augment:
                 augment = np.random.rand() < self.config.zoom_augment_prob
@@ -158,14 +163,14 @@ class NuScenesMapDataset(Dataset):
                     
                     temp_ar = temp_ar[selected_zoom_ind]
                     
-                    image = self.load_image(token, True, temp_ar)
+                    image = torch.hstack([self.load_image(cam_token, True, temp_ar) for cam_token in token_list])
                     
                 else:
-                    image = self.load_image(token, False, None)
+                    image = torch.hstack([self.load_image(cam_token, False, None) for cam_token in token_list])
                     beta=0
                 
             else:
-                image = self.load_image(token, False, None)
+                image = torch.hstack([self.load_image(cam_token, False, None) for cam_token in token_list])
                 beta=0
                 augment=False
             

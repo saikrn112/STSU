@@ -93,7 +93,7 @@ stats_interval: 10
 reset_confusion_interval: 2000
 # Loss function
 
-map_extents: [-25., 1., 25., 50.]
+map_extents: [-25., -25., 25., 25.]
 
 # Spacing between adjacent grid cells in the map, in meters
 map_resolution: 0.25

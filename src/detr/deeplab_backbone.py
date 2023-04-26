@@ -54,34 +54,18 @@ class Joiner(nn.Sequential):
     def __init__(self, backbone, position_embedding):
         super().__init__(backbone, position_embedding)
         self.backbone_net = backbone
-    def forward(self, images_list, calib,extrinsics,abs_bev=True):
-        """
-        Images should be of shape Bx3NxHxW
-        3 because of tha channels 
-        """
+    def forward(self, images, calib,abs_bev=True):
+        xs, low = self[0](images) ##TODO
         out= []
         low_out = []
         pos = []
         bev_pos = []
-        i=0
-        while i<(images_list.shape[1]):
-            images = images_list[:,i:i+3,...]
-            
-            i+=3
-            xs, low = self[0](images) ##TODO
-            # for name, x in xs.items():
-            out.append(xs)
-            low_out.append(low)
-            # position encoding
-            pos.append(self[1](xs,extrinsics[i//3], bev=False).to(xs.dtype))
-
-            bev_pos.append(self[1](xs,extrinsics[i//3], calib,bev=True, abs_bev=abs_bev).to(xs.dtype))
-        out = torch.stack(out,dim=1)
-        low_out = torch.stack(low_out,dim=1)
-
-        pos = torch.stack(pos,dim=1)
-        bev_pos = torch.stack(bev_pos,dim=1)
-
+        # for name, x in xs.items():
+        out.append(xs)
+        low_out.append(low)
+        # position encoding
+        pos.append(self[1](xs, bev=False).to(xs.dtype))
+        bev_pos.append(self[1](xs, calib,bev=True, abs_bev=abs_bev).to(xs.dtype))
         
         return out, low_out,pos, bev_pos
 

@@ -19,7 +19,7 @@ from src.data.utils import get_visible_mask, get_occlusion_mask, transform, \
 from src.data.nuscenes import utils as nusc_utils
 
 
-def process_scene(nuscenes, map_data,map_api, all_centers,scene, config, loc_dict, obj_dict, output_seg_root, output_line_root):
+def process_scene(j, nuscenes, map_data,map_api, all_centers,scene, config, loc_dict, obj_dict, output_seg_root, output_line_root):
     logging.error('WORKING ON SCENE ' + str(scene['name']))
     # Get the map corresponding to the current sample data
     log = nuscenes.get('log', scene['log_token'])
@@ -33,7 +33,7 @@ def process_scene(nuscenes, map_data,map_api, all_centers,scene, config, loc_dic
     centers = all_centers[log['location']]
     # Iterate over samples
     first_sample_token = scene['first_sample_token']
-    for sample in nusc_utils.iterate_samples(nuscenes, first_sample_token):
+    for i, sample in enumerate(nusc_utils.iterate_samples(nuscenes, first_sample_token)):
         # print(f"")
         # if sample['token'] != "cd21dbfc3bd749c7b10a5c42562e0c42":
         #     continue
@@ -47,17 +47,26 @@ def process_scene(nuscenes, map_data,map_api, all_centers,scene, config, loc_dic
         cam_back_left_img  = cv2.imread(dataroot + nuscenes.get('sample_data', sample['data']['CAM_BACK_LEFT'])['filename'])
         cam_back_img  = cv2.imread(dataroot + nuscenes.get('sample_data', sample['data']['CAM_BACK'])['filename'])
         cam_back_right_img  = cv2.imread(dataroot + nuscenes.get('sample_data', sample['data']['CAM_BACK_RIGHT'])['filename'])
-        imgs = np.hstack([cam_left_img, cam_front_img, cam_right_img])
+        imgs_front = np.hstack([cam_left_img, cam_front_img, cam_right_img])
         imgs_back = np.hstack([cam_back_left_img, cam_back_img, cam_back_right_img])
-        imgs = np.vstack([imgs, imgs_back])
+        imgs = np.vstack([imgs_front, imgs_back])
         imgs = cv2.resize(imgs, (2*600,2*250))
         cv2.imshow("cam_front",imgs)
+        # print(f"/home/pear_group/dl_project/ppt_pics/cam_front/{sample['token']}.jpg")
+        # exit(1)
+        cv2.imwrite(f"/home/pear_group/dl_project/ppt_pics/cam_front/{j}_{i}.jpg", cam_front_img)
+        cv2.imwrite(f"/home/pear_group/dl_project/ppt_pics/cam_front_left/{j}_{i}.jpg", cam_left_img)
+        cv2.imwrite(f"/home/pear_group/dl_project/ppt_pics/cam_front_right/{j}_{i}.jpg", cam_right_img)
+        cv2.imwrite(f"/home/pear_group/dl_project/ppt_pics/cam_back/{j}_{i}.jpg", cam_back_img)
+        cv2.imwrite(f"/home/pear_group/dl_project/ppt_pics/cam_back_left/{j}_{i}.jpg", cam_back_left_img)
+        cv2.imwrite(f"/home/pear_group/dl_project/ppt_pics/cam_back_right/{j}_{i}.jpg", cam_back_right_img)
+        cv2.imwrite(f"/home/pear_group/dl_project/ppt_pics/front_view/{j}_{i}.jpg", imgs_front)
             
-        process_sample(nuscenes, scene_map_data, sample, config, centers, loc_dict, obj_dict, output_seg_root, output_line_root)
+        process_sample(j,i, nuscenes, scene_map_data, sample, config, centers, loc_dict, obj_dict, output_seg_root, output_line_root)
         # exit(1)
 
 
-def process_sample(nuscenes, map_data, sample, config,centers,loc_dict, obj_dict, output_seg_root, output_line_root ):
+def process_sample(j,i, nuscenes, map_data, sample, config,centers,loc_dict, obj_dict, output_seg_root, output_line_root ):
 
     # Load the lidar point cloud associated with this sample
     lidar_data = nuscenes.get('sample_data', sample['data']['LIDAR_TOP'])
@@ -70,11 +79,11 @@ def process_sample(nuscenes, map_data, sample, config,centers,loc_dict, obj_dict
     # Iterate over sample data
     for camera in nusc_utils.CAMERA_NAMES:
         sample_data = nuscenes.get('sample_data', sample['data'][camera])
-        obj_entries, loc_array = process_sample_data(nuscenes, map_data, sample_data, lidar_pcl, config,centers,  output_seg_root, output_line_root)
+        obj_entries, loc_array = process_sample_data(j,i, nuscenes, map_data, sample_data, lidar_pcl, config,centers,  output_seg_root, output_line_root)
         loc_dict.append_sample( loc_array, sample_data['token'])     
         obj_dict.append_sample( obj_entries, sample_data['token'])     
 
-def process_sample_data(nuscenes, map_data, sample_data, lidar, config,centers,  output_seg_root, output_line_root):
+def process_sample_data(j, i, nuscenes, map_data, sample_data, lidar, config,centers,  output_seg_root, output_line_root):
 #    
 #    map_masks = nusc_utils.get_map_masks(nuscenes, 
 #                                         map_data, 
@@ -130,6 +139,7 @@ def process_sample_data(nuscenes, map_data, sample_data, lidar, config,centers, 
     img_centers = cv2.rotate(img_centers, cv2.ROTATE_180)
     img_centers = cv2.flip(img_centers, 1)
     cv2.imshow("bullshit", img_centers)
+    cv2.imwrite(f"/home/pear_group/dl_project/ppt_pics/center_lines/{j}_{i}.jpg", img_centers)
     # cv2.imshow("vis_make", vis_mask)
     key = cv2.waitKey(0)
     if key == ord('q'):
@@ -296,8 +306,8 @@ if __name__ == '__main__':
     os.makedirs(output_line_root, exist_ok=True)
     # Iterate over NuScene scenes
     print("\nGenerating labels...")
-    for scene in nuscenes.scene:
-        process_scene(nuscenes, map_data,my_map_apis, new_dict, scene, config, loc_dict, obj_dict, output_seg_root, output_line_root)
+    for i, scene in enumerate(nuscenes.scene):
+        process_scene(i, nuscenes, map_data,my_map_apis, new_dict, scene, config, loc_dict, obj_dict, output_seg_root, output_line_root)
         
     np.save(config.loc_dict_path, loc_dict.get_res())
     np.save(config.obj_dict_path, obj_dict.get_res())

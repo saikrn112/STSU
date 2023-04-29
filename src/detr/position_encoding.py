@@ -34,9 +34,10 @@ class PositionEmbeddingSine(nn.Module):
         
         self.img_size = [50,28]
 
-    def forward(self,x,calib=None, bev=False, abs_bev=True):
+    def forward(self,x,calib=None, extrinsics=None, bev=False, abs_bev=True):
        
         if bev:
+            calib = calib[0]
             range_x = torch.arange(self.img_size[0]).cuda()
             range_y = torch.arange(self.img_size[1]).cuda()
             cur_y, cur_x = torch.meshgrid(range_y,range_x)
@@ -137,6 +138,7 @@ class PositionEmbeddingSine(nn.Module):
 
         pos_x = x_embed[:, :, :, None] / dim_t
         pos_y = y_embed[:, :, :, None] / dim_t
+
         pos_x = torch.stack((pos_x[:, :, :, 0::2].sin(), pos_x[:, :, :, 1::2].cos()), dim=4).flatten(3)
         pos_y = torch.stack((pos_y[:, :, :, 0::2].sin(), pos_y[:, :, :, 1::2].cos()), dim=4).flatten(3)
         pos = torch.cat((pos_y, pos_x), dim=3).permute(0, 3, 1, 2)
@@ -172,7 +174,7 @@ class PositionEmbeddingLearned(nn.Module):
 
 
 def build_position_encoding(args):
-    N_steps = args.hidden_dim // 2
+    N_steps = args.hidden_dim // (3*2)
     if args.position_embedding in ('v2', 'sine'):
         # TODO find a better way of exposing other arguments
         position_embedding = PositionEmbeddingSine(N_steps, split=args.split_pe, normalize=True)

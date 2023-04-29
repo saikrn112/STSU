@@ -21,15 +21,16 @@ from scipy.ndimage import gaussian_filter
 import scipy.ndimage as ndimage
 import h5py
 
+from pyquaternion import Quaternion
+
 LOCATIONS = ['boston-seaport', 'singapore-onenorth', 'singapore-queenstown',
              'singapore-hollandvillage']
 
 class NuScenesMapDataset(Dataset):
 
     def __init__(self, nuscenes, config,map_apis, apply_zoom_augment,
-                 scene_names=None, pinet=False, work_objects=True):
-        
-        
+                 scene_names=None, pinet=False, work_objects=False):
+        work_objects = False
         self.pinet=pinet
         
         self.work_objects = work_objects
@@ -136,12 +137,12 @@ class NuScenesMapDataset(Dataset):
 
     def __getitem__(self, index):
         
-        try:
-            token_list = self.tokens[index]
-            images_list = []
-            targets_list = []
+        # try:
+                token_list = self.tokens[index]
+                images_list = []
+                targets_list = []
 
-            for token in token_list:
+            
 
             
                 if self.apply_zoom_augment:
@@ -173,19 +174,36 @@ class NuScenesMapDataset(Dataset):
                         beta=0
                     
                 else:
-                    image = self.load_image(token, False, None)
+                    images = []
+                    for token in token_list:
+                        image = self.load_image(token, False, None)
+                        images.append(image)
+                    images = torch.cat(images, dim=0)
+
+                    intrinsics = []
+                    extrinsics = []
+                    for token in token_list:
+                        intrinsic, extrinsic = self.load_calib(token)
+                        intrinsics.append(intrinsic)
+                        extrinsics.append(extrinsic)
+                    intrinsics = torch.tensor(np.stack(intrinsics, axis = 0))
+                    extrinsics = torch.tensor(np.stack(extrinsics, axis = 0))
+                    
                     beta=0
                     augment=False
-                
-                calib = self.load_calib(token)
+
+
+                token = token_list[0]
+            
                 obj_to_return, center_width_orient,con_matrix,endpoints,mask, bev_mask, orig_img_centers,\
                 origs, scene_token,sample_token,to_return_centers, labels,roads,coeffs,\
                 outgoings, incomings, singapore,problem, obj_exists = self.load_line_labels(token, augment, beta) ##TODO
-                
+            
+            
                 if problem:
                     return (None, dict(), True)
-                
-                
+            
+            
                 if self.work_objects: ## TODO check if we can set this to false
                     #1.5 is camera height
                     if len(center_width_orient) > 0:
@@ -245,7 +263,8 @@ class NuScenesMapDataset(Dataset):
                 target = dict()
                 
 
-                target['calib'] = calib
+                target['calib'] = intrinsics
+                target['extrinsics'] = extrinsics
                 target['center_img'] = to_return_centers
                 target['orig_center_img'] = orig_img_centers
                 target['labels'] = labels.long()
@@ -288,12 +307,13 @@ class NuScenesMapDataset(Dataset):
                 target['outgoings'] = outgoings
                 target['incomings'] = incomings
                 target['left_traffic'] = torch.tensor(singapore)
-            return (image, target, False)
+
+                return (images, target, False)
         
-        except Exception as e:
-            logging.error('NUSC DATALOADER ' + str(e))
+        # except Exception as e:
+        #     logging.error('NUSC DATALOADER ' + str(e))
             
-            return (None, dict(), True)
+        #     return (None, dict(), True)
     
 
         
@@ -356,11 +376,14 @@ class NuScenesMapDataset(Dataset):
         sensor = self.nuscenes.get(
             'calibrated_sensor', sample_data['calibrated_sensor_token'])
         intrinsics = torch.tensor(sensor['camera_intrinsic'])
+        extrinsics = np.eye(4)
+        extrinsics[:3, :3] = Quaternion(sensor['rotation']).rotation_matrix
+        extrinsics[:3, 3] = np.array(sensor['translation'])
 
         # Scale calibration matrix to account for image downsampling
         intrinsics[0] *= self.image_size[0] / sample_data['width']
         intrinsics[1] *= self.image_size[1] / sample_data['height']
-        return intrinsics
+        return intrinsics, extrinsics
     
     
     def  get_line_orientation(self,sample_token, road,img_centers,loc,vis_mask, custom_endpoints=None, augment=False):
@@ -594,6 +617,7 @@ class NuScenesMapDataset(Dataset):
         sensor = self.nuscenes.get(
         'calibrated_sensor', sample_data['calibrated_sensor_token'])
         intrinsics = np.array(sensor['camera_intrinsic'])
+        
     
     
         sample = self.nuscenes.get('sample', sample_token)

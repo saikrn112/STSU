@@ -203,7 +203,7 @@ class DETR(nn.Module):
         return outputs
     
     
-    def forward(self, samples,calib=None,left_traffic=False):
+    def forward(self, samples,calib, extrinsics, left_traffic=False):
         """ The forward expects a NestedTensor, which consists of:
                - samples.tensor: batched images, of shape [batch_size x 3 x H x W]
                - samples.mask: a binary mask of shape [batch_size x H x W], containing 1 on padded pixels
@@ -231,7 +231,7 @@ class DETR(nn.Module):
         ## TODO 
         # make sure samples shape is b X C X H X W
         ## TODO 
-        features, low_features, pos, bev_pos = self.backbone(samples,calib_smallest, self.abs_bev)
+        features, low_features, pos, bev_pos = self.backbone(samples,calib_smallest, extrinsics, self.abs_bev)
         
         src = features[-1]
         
@@ -256,17 +256,8 @@ class DETR(nn.Module):
         if self.estimate_objects:
             selected_embed = torch.cat([selected_embed, selected_object_embed.weight],dim=0)
             
-        if self.split_pe:
-            hs, trans_memory = self.transformer(self.input_proj(src), mask, selected_embed, torch.cat([pos[-1], bev_pos[-1]],dim=1))
-       
-        
-        elif self.bev_pe:
-            if self.only_bev:
-                hs, trans_memory = self.transformer(self.input_proj(src), mask, selected_embed,  bev_pos[-1])
-            else:
-                hs, trans_memory = self.transformer(self.input_proj(src), mask, selected_embed, pos[-1] + bev_pos[-1])
-        else:
-            hs, trans_memory = self.transformer(self.input_proj(src), mask, selected_embed, pos[-1] )
+        hs, trans_memory = self.transformer(self.input_proj(src), mask, selected_embed, torch.cat([pos[-1], bev_pos[-1]],dim=1))
+
         
 
         

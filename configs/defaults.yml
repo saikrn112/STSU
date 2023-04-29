@@ -24,8 +24,8 @@ nusc_num_object_class: 10
 num_bev_classes: 14
 
        
-load_pretrained_backbone: False
-backbone_ckpt_path: /cluster/work/cvl/cany/lanefinder/deeplab_model.pth
+load_pretrained_backbone: True
+backbone_ckpt_path: ../stsu_run_new/deeplab.pth
 load_original_ckpt: False
         
      
@@ -81,12 +81,12 @@ stats_interval: 10
 reset_confusion_interval: 2000
 # Loss function
 
-map_extents: [-25., 1., 25., 50.]
+map_extents: [-25., 25., 0., 50.]
 
 # Spacing between adjacent grid cells in the map, in meters
 map_resolution: 0.25
 resolution: 0.25
-zoom_augment_prob: 0.4
+zoom_augment_prob: 0.0
 
 
 rnn_size: [49,50]

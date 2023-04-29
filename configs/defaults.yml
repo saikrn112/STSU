@@ -1,16 +1,12 @@
 
 
-#logdir: /cluster/work/cvl/cany/lanefinder
-logdir: ../stsu_run/
+logdir: ../stsu_run_new/
 
 train_dataset: nuscenes
 # train_dataset: argoverse
 
-# nusc_root: /cluster/scratch/cany/nuScenes
 nusc_root: /media/pear_group/data/nuscenes/mini/
-#nusc_root: ../nuscenes/mini/
 nuscenes_version: v1.0-mini
-# nuscenes_version: v1.0-trainval
 
 
 argo_log_root: /srv/beegfs02/scratch/tracezuerich/data/datasets/Argoverse_v2/argoverse-tracking/all_logs
@@ -19,11 +15,9 @@ argo_root: /srv/beegfs02/scratch/tracezuerich/data/datasets/Argoverse_v2
 argo_seg_label_root: /srv/beegfs02/scratch/tracezuerich/data/cany/argoverse
 
 
-#line_label_root: /cluster/scratch/cany/nuscenes_stuff/lines
-line_label_root: ../stsu_run/lines/
+line_label_root: ../stsu_run_new//lines
 
-#seg_label_root: /cluster/scratch/cany/nuscenes_stuff/seg_labels
-seg_label_root: ../stsu_run/seg_labels/
+seg_label_root: ../stsu_run_new//seg_labels
 
 nusc_num_object_class: 10
 
@@ -31,22 +25,17 @@ num_bev_classes: 14
 
        
 load_pretrained_backbone: False
-#backbone_ckpt_path: /cluster/work/cvl/cany/lanefinder/deeplab_model.pth
-backbone_ckpt_path: ../stsu_run/
-
+backbone_ckpt_path: /cluster/work/cvl/cany/lanefinder/deeplab_model.pth
 load_original_ckpt: False
         
      
-#loc_dict_path:  /cluster/scratch/cany/nuscenes_stuff/vis_loc_dict.npy
-loc_dict_path: ../stsu_run/vis_loc_dict.npy
-#obj_dict_path:  /cluster/scratch/cany/nuscenes_stuff/obj_dict.npy
-obj_dict_path: ../stsu_run/obj_dict.npy
+loc_dict_path:  ../stsu_run_new//vis_loc_dict.npy
+obj_dict_path:  ../stsu_run_new//obj_dict.npy
  
  
 argo_obj_dict_path:  /scratch_net/catweazle/cany/lanefinder/argo_obj_dict.npy
      
-#zoom_sampling_dict_path: /cluster/work/cvl/cany/lanefinder/zoom_sampling_dict.npy
-zoom_sampling_dict_path: ../stsu_run/zoom_sampling_dict.npy
+zoom_sampling_dict_path: ../stsu_run_new//zoom_sampling_dict.npy
         
 crop_lines: True
 delete_lines: False
@@ -97,7 +86,7 @@ map_extents: [-25., 1., 25., 50.]
 # Spacing between adjacent grid cells in the map, in meters
 map_resolution: 0.25
 resolution: 0.25
-zoom_augment_prob: 0.0
+zoom_augment_prob: 0.4
 
 
 rnn_size: [49,50]

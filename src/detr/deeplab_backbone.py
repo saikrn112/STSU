@@ -72,7 +72,7 @@ class Joiner(nn.Sequential):
             out.append(xs)
             low_out.append(low)
             # position encoding
-            pos.append(self[1](xs, bev=False).to(xs.dtype))
+            pos.append(self[1](xs,calib, extrinsics[i], bev=True, abs_bev=abs_bev).to(xs.dtype))
 
             bev_pos.append(self[1](xs,calib, extrinsics[i], bev=True, abs_bev=abs_bev).to(xs.dtype))
             i+=1

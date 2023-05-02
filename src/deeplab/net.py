@@ -12,7 +12,7 @@ class SPPNet(nn.Module):
     def __init__(self, output_channels=19, enc_type='xception65', dec_type='aspp', output_stride=8):
         super().__init__()
         self.output_channels = output_channels
-        self.num_channels = 256
+        self.num_channels = 256*3
         self.enc_type = enc_type
         self.dec_type = dec_type
         

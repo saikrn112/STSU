@@ -21,6 +21,7 @@ import logging
 #ALL_LOGS = TRAIN_LOGS + VAL_LOGS
 
 def build_nuscenes_datasets(config,args, val=False, pinet=False):
+    # args.objects = False
     print('==> Loading NuScenes dataset...')
     nuscenes = NuScenes(config.nuscenes_version, 
                         os.path.expandvars(config.nusc_root))

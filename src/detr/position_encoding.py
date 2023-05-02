@@ -34,9 +34,10 @@ class PositionEmbeddingSine(nn.Module):
         
         self.img_size = [50,28]
 
-    def forward(self,x,calib=None, bev=False, abs_bev=True):
+    def forward(self,x,calib=None, extrinsics=None, bev=False, abs_bev=True):
        
         if bev:
+            calib = calib[0]
             range_x = torch.arange(self.img_size[0]).cuda()
             range_y = torch.arange(self.img_size[1]).cuda()
             cur_y, cur_x = torch.meshgrid(range_y,range_x)
@@ -132,14 +133,41 @@ class PositionEmbeddingSine(nn.Module):
 
 
 
+        # print(x_embed.shape, y_embed.shape)
+        
+        # torch.Size([1, 28, 50]) torch.Size([1, 28, 50])
+        # torch.Size([1, 128, 28, 50])
+
+        pos = torch.cat((x_embed, y_embed), dim=0).cuda()
+        pos = torch.cat((pos, torch.zeros(x_embed.shape, dtype=torch.double).cuda(), \
+                         torch.ones(x_embed.shape, dtype=torch.double).cuda()), dim=0)
+        # print(extrinsics)
+        pos = pos.reshape(4, -1)
+        
+        pos = (torch.matmul(extrinsics, pos))[:-1,:]  ## 3 x 28*50
+        # print(f"pos after exterinsics: {pos.shape}")
+        
+        pos = pos.reshape(-1, x_embed.shape[1], x_embed.shape[2])
+        
+        x_embed = torch.unsqueeze(pos[0,:], dim=0)
+        y_embed = torch.unsqueeze(pos[1,:], dim=0)
+        
+        # print(f"Final embed shapes: {x_embed.shape}, {y_embed.shape}")
+        
         dim_t = torch.arange(self.num_pos_feats, dtype=torch.float32, device=x.device)
         dim_t = self.temperature ** (2 * (dim_t // 2) / self.num_pos_feats)
 
         pos_x = x_embed[:, :, :, None] / dim_t
         pos_y = y_embed[:, :, :, None] / dim_t
-        pos_x = torch.stack((pos_x[:, :, :, 0::2].sin(), pos_x[:, :, :, 1::2].cos()), dim=4).flatten(3)
+
+        
+
+        pos_x = torch.stack((pos_x[:, :, :, 0::2].sin(), pos_x[:, :, :, 1::2].cos()), dim=4).flatten(3) # 1, 64, 28, 50
         pos_y = torch.stack((pos_y[:, :, :, 0::2].sin(), pos_y[:, :, :, 1::2].cos()), dim=4).flatten(3)
         pos = torch.cat((pos_y, pos_x), dim=3).permute(0, 3, 1, 2)
+
+        # print(pos.shape)
+        # exit(1)
         return pos
 
 
@@ -172,7 +200,7 @@ class PositionEmbeddingLearned(nn.Module):
 
 
 def build_position_encoding(args):
-    N_steps = args.hidden_dim // 2
+    N_steps = args.hidden_dim // (3*2)
     if args.position_embedding in ('v2', 'sine'):
         # TODO find a better way of exposing other arguments
         position_embedding = PositionEmbeddingSine(N_steps, split=args.split_pe, normalize=True)

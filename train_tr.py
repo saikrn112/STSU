@@ -55,6 +55,13 @@ def train(dataloader,dataset, model, criterion, optimiser,refiner_optimiser, pos
             continue
         
         seq_images, targets, _ = batch
+        ## TODO
+        # get sequence images and targets for all the views 
+        # TODO
+        # come up with the some format to load squence images and targets
+        
+
+
         
                    
         cuda_targets = []
@@ -62,6 +69,7 @@ def train(dataloader,dataset, model, criterion, optimiser,refiner_optimiser, pos
             temp_dict={}
             
             temp_dict['calib'] = b['calib'].cuda()
+            temp_dict['extrinsics'] = b['extrinsics'].cuda()
             temp_dict['center_img'] = b['center_img'].cuda()
             temp_dict['labels'] = b['labels'].cuda()
             temp_dict['roads'] = b['roads'].cuda()
@@ -91,7 +99,7 @@ def train(dataloader,dataset, model, criterion, optimiser,refiner_optimiser, pos
         time2 = time.time()
         data_loading_times.append(time2-time3)
         
-        outputs = model(seq_images,cuda_targets[0]['calib'], targets[0]['left_traffic'])
+        outputs = model(seq_images,cuda_targets[0]['calib'], cuda_targets[0]['extrinsics'], targets[0]['left_traffic'])
         
         loss_dict = criterion(outputs, cuda_targets)
         
@@ -100,7 +108,7 @@ def train(dataloader,dataset, model, criterion, optimiser,refiner_optimiser, pos
         loss = sum(loss_dict[k] * weight_dict[k] for k in loss_dict.keys() if k in weight_dict)
         
         optimiser.zero_grad()
-        refiner_optimiser.zero_grad()
+        # refiner_optimiser.zero_grad()
         loss.backward()
         torch.nn.utils.clip_grad_norm_(model.parameters(), args.clip_max_norm)
         optimiser.step()
@@ -205,7 +213,7 @@ def train(dataloader,dataset, model, criterion, optimiser,refiner_optimiser, pos
             
             
             else:
-                vis_tools.save_results_train(seq_images.cpu().numpy(), out,out_objects, targets, static_inter_dict,None, static_target_ids, None, config)
+                vis_tools.save_results_train(seq_images.cpu().numpy(), out,None, targets, static_inter_dict,None, static_target_ids, None, config)
                 
 #            if args.object_refinement:
 #                if targets[0]['obj_exists']:
@@ -479,7 +487,7 @@ def freeze_backbone_layers(model):
     
 #                logging.error(str(n) + ', '+str(p.requires_grad))
 
-object_refinement = True
+object_refinement = False
 
 
 apply_poly_loss = True
@@ -501,20 +509,20 @@ base_dir = '../stsu_run/'
 def main():
 
     large_parameters =  dict()
-    large_parameters['hidden_dim'] = 256
+    large_parameters['hidden_dim'] = 256*3
     large_parameters['dim_feedforward'] = 512
     
-    large_parameters['class_embed_dim']=256
+    large_parameters['class_embed_dim']=256*3
     large_parameters['class_embed_num']=3
     
-    large_parameters['box_embed_dim']=256
+    large_parameters['box_embed_dim']=256*3
     large_parameters['box_embed_num']=3
-    large_parameters['endpoint_embed_dim']=256
+    large_parameters['endpoint_embed_dim']=256*3
     large_parameters['endpoint_embed_num']=3
-    large_parameters['assoc_embed_dim']=256
+    large_parameters['assoc_embed_dim']=256*3
     large_parameters['assoc_embed_last_dim']=128
     large_parameters['assoc_embed_num']=3
-    large_parameters['assoc_classifier_dim']=256
+    large_parameters['assoc_classifier_dim']=256*3
     large_parameters['assoc_classifier_num']=3
     
     

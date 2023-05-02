@@ -1522,8 +1522,10 @@ def save_results_train(image,out,out_objects, targets, static_inter_dict, object
     # logging.error('LEN OF POST PROCESS ' + str(len(out)))
     
     for fr in range(len(image)):
-        cur_img = Image.fromarray(np.uint8(image[fr,...]))
-        cur_img.save(os.path.join(config.save_logdir,'train_images','image_'+str(fr)+'.jpg'))       
+        for i in range(image[fr].shape[2]//3):
+            cur_img = image[fr][...,i:i+3]
+            cur_img = Image.fromarray(np.uint8(cur_img))
+            cur_img.save(os.path.join(config.save_logdir,'train_images','image_'+str(i)+'.jpg'))       
     
     
     save_matched_results(static_inter_dict,targets[0],static_target_ids,config,os.path.join(config.save_logdir,'train_images'))
@@ -1541,11 +1543,12 @@ def save_results_train(image,out,out_objects, targets, static_inter_dict, object
 
     visual_est(np.uint8(image),out,os.path.join(config.save_logdir,'train_images'))
     
-    try:    
-        visual_object_est(np.uint8(image),out_objects,os.path.join(config.save_logdir,'train_images'))
+    if out_objects is not None:
+        try:    
+            visual_object_est(np.uint8(image),out_objects,os.path.join(config.save_logdir,'train_images'))
 
-    except Exception as e:
-        logging.error("PROBLEM IN VISUAL OBJECT TRAIN SAVE: " + str(e))
+        except Exception as e:
+            logging.error("PROBLEM IN VISUAL OBJECT TRAIN SAVE: " + str(e))
 
       
 def save_results_eval(image,out,out_objects, targets, static_inter_dict, object_inter_dict, static_target_ids, object_target_ids, config):

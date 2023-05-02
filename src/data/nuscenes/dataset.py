@@ -21,15 +21,16 @@ from scipy.ndimage import gaussian_filter
 import scipy.ndimage as ndimage
 import h5py
 
+from pyquaternion import Quaternion
+
 LOCATIONS = ['boston-seaport', 'singapore-onenorth', 'singapore-queenstown',
              'singapore-hollandvillage']
 
 class NuScenesMapDataset(Dataset):
 
     def __init__(self, nuscenes, config,map_apis, apply_zoom_augment,
-                 scene_names=None, pinet=False, work_objects=True):
-        
-        
+                 scene_names=None, pinet=False, work_objects=False):
+        work_objects = False
         self.pinet=pinet
         
         self.work_objects = work_objects
@@ -121,8 +122,12 @@ class NuScenesMapDataset(Dataset):
                                           scene['first_sample_token']):
                 
                 # Iterate over cameras
+                # 
+                tmp_tokens = list()
                 for camera in CAMERA_NAMES:
-                    self.tokens.append(sample['data'][camera])
+                    tmp_tokens.append(sample['data'][camera])
+
+                self.tokens.append(tmp_tokens)
         
         return self.tokens
 
@@ -132,160 +137,183 @@ class NuScenesMapDataset(Dataset):
 
     def __getitem__(self, index):
         
-        try:
-            token = self.tokens[index]
-            
-            
-            if self.apply_zoom_augment:
-                augment = np.random.rand() < self.config.zoom_augment_prob
-                
-                if augment:
-                    sample_data = self.nuscenes.get('sample_data', token)
-                    sample_token = sample_data['sample_token']
+        # try:
+                token_list = self.tokens[index]
+                images_list = []
+                targets_list = []
 
-                    sample = self.nuscenes.get('sample', sample_token)
-                    scene_token = sample['scene_token']
+            
 
-                    scene = self.nuscenes.get('scene', scene_token)
-                    
-                    log = self.nuscenes.get('log', scene['log_token'])
-                    
-                    selected_zoom_ind = random.randint(0,len(self.augment_steps)-1)
-                    
-                    beta = self.augment_steps[selected_zoom_ind]
-                    
-                    temp_ar = self.zoom_sampling_dict.item().get(log['location'])
-                    
-                    temp_ar = temp_ar[selected_zoom_ind]
-                    
-                    image = self.load_image(token, True, temp_ar)
-                    
-                else:
-                    image = self.load_image(token, False, None)
-                    beta=0
-                
-            else:
-                image = self.load_image(token, False, None)
-                beta=0
-                augment=False
             
-            calib = self.load_calib(token)
-            obj_to_return, center_width_orient,con_matrix,endpoints,mask, bev_mask, orig_img_centers,\
-            origs, scene_token,sample_token,to_return_centers, labels,roads,coeffs,\
-            outgoings, incomings, singapore,problem, obj_exists = self.load_line_labels(token, augment, beta)
-            
-            if problem:
-                return (None, dict(), True)
-            
-            
-            if self.work_objects:
-                #1.5 is camera height
-                if len(center_width_orient) > 0:
-                    my_calib = calib.cpu().numpy()
-                    obj_center = center_width_orient[:,:2]
+                if self.apply_zoom_augment:
+                    augment = np.random.rand() < self.config.zoom_augment_prob
                     
-                    obj_x = obj_center[:,0]*(self.config.map_extents[2]-self.config.map_extents[0]) + self.config.map_extents[0]
-                    obj_y = obj_center[:,1]*(self.config.map_extents[3]-self.config.map_extents[1]) + self.config.map_extents[1]
-                    
-                    img_x = (obj_x*my_calib[0,0] + obj_y*my_calib[0,-1])/(obj_y + 0.0001)
-                    img_y = (1.5*my_calib[1,1] + obj_y*my_calib[1,-1])/(obj_y + 0.0001)
-                    
-                    img_x = img_x / self.image_size[0]
-                    img_y = img_y / self.image_size[1]
-                    
-                    to_keep = np.logical_not((img_x > 1) | (img_x < 0) | (img_y > 1) | (img_y < 0))
-                    
-                    img_centers = np.stack([img_x,img_y],axis=-1)
-                    
-                    if np.sum(to_keep) == 0:
-                        img_centers = []
-                        center_width_orient = []
-                        obj_to_return = []
-                        obj_exists = False
+                    if augment:
+                        sample_data = self.nuscenes.get('sample_data', token)
+                        sample_token = sample_data['sample_token']
+
+                        sample = self.nuscenes.get('sample', sample_token)
+                        scene_token = sample['scene_token']
+
+                        scene = self.nuscenes.get('scene', scene_token)
+                        
+                        log = self.nuscenes.get('log', scene['log_token'])
+                        
+                        selected_zoom_ind = random.randint(0,len(self.augment_steps)-1)
+                        
+                        beta = self.augment_steps[selected_zoom_ind]
+                        
+                        temp_ar = self.zoom_sampling_dict.item().get(log['location'])
+                        
+                        temp_ar = temp_ar[selected_zoom_ind]
+                        
+                        image = self.load_image(token, True, temp_ar)
+                        
                     else:
-                        img_centers = img_centers[to_keep]
-                        center_width_orient = center_width_orient[to_keep]
-                        obj_to_return = obj_to_return[to_keep]
-                else:
-                    img_centers = []
+                        image = self.load_image(token, False, None)
+                        beta=0
                     
-            
-            scene_name = self.nuscenes.get('scene', scene_token)['name']
-            
-            init_points = np.reshape(endpoints,(-1,2,2))[:,0]
-            
-            sorted_init_points, sort_index = self.get_sorted_init_points(init_points)
-            
-            temp_ar = np.zeros((len(sorted_init_points),2*self.config.polyrnn_feat_side,2*self.config.polyrnn_feat_side))
-            for k in range(len(sorted_init_points)):
-                temp_ar[k,int(np.clip(sorted_init_points[k,1]*2*self.config.polyrnn_feat_side,0,2*self.config.polyrnn_feat_side-1)),int(np.clip(sorted_init_points[k,0]*2*self.config.polyrnn_feat_side,0,2*self.config.polyrnn_feat_side-1))]=1
-                
-                temp_ar[k] = gaussian_filter(temp_ar[k], sigma=0.1)
-                
-                temp_ar[k] = temp_ar[k]/np.max(temp_ar[k])
-                
-            
-            # sorted_points = np.copy(np.ascontiguousarray(coeffs[sort_index,:]))
-            sorted_points = np.copy(coeffs)
-            grid_sorted_points = np.reshape(sorted_points,(-1,self.n_control ,2))
-            grid_sorted_points[...,0]= np.int32(grid_sorted_points[...,0]*(self.config.polyrnn_feat_side - 1))
-            grid_sorted_points[...,1]= np.int32(grid_sorted_points[...,1]*(self.config.polyrnn_feat_side - 1))
-            
-            my_grid_points = np.copy(np.ascontiguousarray(grid_sorted_points))
-            
-           
-            target = dict()
-            
+                else:
+                    images = []
+                    for token in token_list:
+                        image = self.load_image(token, False, None)
+                        images.append(image)
+                    images = torch.cat(images, dim=0)
 
-            target['calib'] = calib
-            target['center_img'] = to_return_centers
-            target['orig_center_img'] = orig_img_centers
-            target['labels'] = labels.long()
-            target['roads'] = torch.tensor(np.int64(roads)).long()
-            target['control_points'] = torch.tensor(coeffs)
-            target['con_matrix'] = torch.tensor(con_matrix)
+                    intrinsics = []
+                    extrinsics = []
+                    for token in token_list:
+                        intrinsic, extrinsic = self.load_calib(token)
+                        intrinsics.append(intrinsic)
+                        extrinsics.append(extrinsic)
+                    intrinsics = torch.tensor(np.stack(intrinsics, axis = 0))
+                    extrinsics = torch.tensor(np.stack(extrinsics, axis = 0))
+                    
+                    beta=0
+                    augment=False
+
+
+                token = token_list[0]
+            
+                obj_to_return, center_width_orient,con_matrix,endpoints,mask, bev_mask, orig_img_centers,\
+                origs, scene_token,sample_token,to_return_centers, labels,roads,coeffs,\
+                outgoings, incomings, singapore,problem, obj_exists = self.load_line_labels(token, augment, beta) ##TODO
             
             
-            target['init_point_matrix'] = torch.tensor(np.copy(np.ascontiguousarray(temp_ar)))
+                if problem:
+                    return (None, dict(), True)
             
-            target['sorted_control_points'] = torch.tensor(sorted_points)
             
-            target['grid_sorted_control_points'] = torch.tensor(my_grid_points)
-            
-            target['sort_index'] = torch.tensor(np.copy(np.ascontiguousarray(sort_index)))
-            
-            if self.work_objects:
-                target['obj_corners'] = torch.tensor(obj_to_return).float()
-                target['obj_converted'] = torch.tensor(center_width_orient).float()
-                target['obj_exists'] = torch.tensor(obj_exists)
+                if self.work_objects: ## TODO check if we can set this to false
+                    #1.5 is camera height
+                    if len(center_width_orient) > 0:
+                        my_calib = calib.cpu().numpy()
+                        obj_center = center_width_orient[:,:2]
+                        
+                        obj_x = obj_center[:,0]*(self.config.map_extents[2]-self.config.map_extents[0]) + self.config.map_extents[0]
+                        obj_y = obj_center[:,1]*(self.config.map_extents[3]-self.config.map_extents[1]) + self.config.map_extents[1]
+                        
+                        img_x = (obj_x*my_calib[0,0] + obj_y*my_calib[0,-1])/(obj_y + 0.0001)
+                        img_y = (1.5*my_calib[1,1] + obj_y*my_calib[1,-1])/(obj_y + 0.0001)
+                        
+                        img_x = img_x / self.image_size[0]
+                        img_y = img_y / self.image_size[1]
+                        
+                        to_keep = np.logical_not((img_x > 1) | (img_x < 0) | (img_y > 1) | (img_y < 0))
+                        
+                        img_centers = np.stack([img_x,img_y],axis=-1)
+                        
+                        if np.sum(to_keep) == 0:
+                            img_centers = []
+                            center_width_orient = []
+                            obj_to_return = []
+                            obj_exists = False
+                        else:
+                            img_centers = img_centers[to_keep]
+                            center_width_orient = center_width_orient[to_keep]
+                            obj_to_return = obj_to_return[to_keep]
+                    else:
+                        img_centers = []
+                        
                 
+                scene_name = self.nuscenes.get('scene', scene_token)['name']
                 
-            else:
-                target['obj_corners'] = torch.tensor(np.zeros((2,8))).float()
-                target['obj_converted'] = torch.tensor(np.zeros((2,5))).float()
-                target['obj_exists'] = torch.tensor(False)
+                init_points = np.reshape(endpoints,(-1,2,2))[:,0]
+                
+                sorted_init_points, sort_index = self.get_sorted_init_points(init_points)
+                
+                temp_ar = np.zeros((len(sorted_init_points),2*self.config.polyrnn_feat_side,2*self.config.polyrnn_feat_side))
+                for k in range(len(sorted_init_points)):
+                    temp_ar[k,int(np.clip(sorted_init_points[k,1]*2*self.config.polyrnn_feat_side,0,2*self.config.polyrnn_feat_side-1)),int(np.clip(sorted_init_points[k,0]*2*self.config.polyrnn_feat_side,0,2*self.config.polyrnn_feat_side-1))]=1
+                    
+                    temp_ar[k] = gaussian_filter(temp_ar[k], sigma=0.1)
+                    
+                    temp_ar[k] = temp_ar[k]/np.max(temp_ar[k])
+                    
+                
+                # sorted_points = np.copy(np.ascontiguousarray(coeffs[sort_index,:]))
+                sorted_points = np.copy(coeffs)
+                grid_sorted_points = np.reshape(sorted_points,(-1,self.n_control ,2))
+                grid_sorted_points[...,0]= np.int32(grid_sorted_points[...,0]*(self.config.polyrnn_feat_side - 1))
+                grid_sorted_points[...,1]= np.int32(grid_sorted_points[...,1]*(self.config.polyrnn_feat_side - 1))
+                
+                my_grid_points = np.copy(np.ascontiguousarray(grid_sorted_points))
+                
+            
+                target = dict()
                 
 
-            target['endpoints'] = torch.tensor(endpoints)
+                target['calib'] = intrinsics
+                target['extrinsics'] = extrinsics
+                target['center_img'] = to_return_centers
+                target['orig_center_img'] = orig_img_centers
+                target['labels'] = labels.long()
+                target['roads'] = torch.tensor(np.int64(roads)).long()
+                target['control_points'] = torch.tensor(coeffs)
+                target['con_matrix'] = torch.tensor(con_matrix)
+                
+                
+                target['init_point_matrix'] = torch.tensor(np.copy(np.ascontiguousarray(temp_ar)))
+                
+                target['sorted_control_points'] = torch.tensor(sorted_points)
+                
+                target['grid_sorted_control_points'] = torch.tensor(my_grid_points)
+                
+                target['sort_index'] = torch.tensor(np.copy(np.ascontiguousarray(sort_index)))
+                
+                if self.work_objects:
+                    target['obj_corners'] = torch.tensor(obj_to_return).float()
+                    target['obj_converted'] = torch.tensor(center_width_orient).float()
+                    target['obj_exists'] = torch.tensor(obj_exists)
+                    
+                    
+                else:
+                    target['obj_corners'] = torch.tensor(np.zeros((2,8))).float()
+                    target['obj_converted'] = torch.tensor(np.zeros((2,5))).float()
+                    target['obj_exists'] = torch.tensor(False)
+                    
 
-            target['origs'] = torch.tensor(origs)
-            target['mask'] = mask
-            target['bev_mask'] = bev_mask
-#            target['static_mask'] = static_mask
-            
-            
-            target['scene_token'] = scene_token
-            target['sample_token'] = sample_token
-            target['scene_name'] = scene_name
-            target['outgoings'] = outgoings
-            target['incomings'] = incomings
-            target['left_traffic'] = torch.tensor(singapore)
-            return (image, target, False)
+                target['endpoints'] = torch.tensor(endpoints)
+
+                target['origs'] = torch.tensor(origs)
+                target['mask'] = mask
+                target['bev_mask'] = bev_mask
+    #            target['static_mask'] = static_mask
+                
+                
+                target['scene_token'] = scene_token
+                target['sample_token'] = sample_token
+                target['scene_name'] = scene_name
+                target['outgoings'] = outgoings
+                target['incomings'] = incomings
+                target['left_traffic'] = torch.tensor(singapore)
+
+                return (images, target, False)
         
-        except Exception as e:
-            logging.error('NUSC DATALOADER ' + str(e))
+        # except Exception as e:
+        #     logging.error('NUSC DATALOADER ' + str(e))
             
-            return (None, dict(), True)
+        #     return (None, dict(), True)
     
 
         
@@ -348,11 +376,14 @@ class NuScenesMapDataset(Dataset):
         sensor = self.nuscenes.get(
             'calibrated_sensor', sample_data['calibrated_sensor_token'])
         intrinsics = torch.tensor(sensor['camera_intrinsic'])
+        extrinsics = np.eye(4)
+        extrinsics[:3, :3] = Quaternion(sensor['rotation']).rotation_matrix
+        extrinsics[:3, 3] = np.array(sensor['translation'])
 
         # Scale calibration matrix to account for image downsampling
         intrinsics[0] *= self.image_size[0] / sample_data['width']
         intrinsics[1] *= self.image_size[1] / sample_data['height']
-        return intrinsics
+        return intrinsics, extrinsics
     
     
     def  get_line_orientation(self,sample_token, road,img_centers,loc,vis_mask, custom_endpoints=None, augment=False):
@@ -586,6 +617,7 @@ class NuScenesMapDataset(Dataset):
         sensor = self.nuscenes.get(
         'calibrated_sensor', sample_data['calibrated_sensor_token'])
         intrinsics = np.array(sensor['camera_intrinsic'])
+        
     
     
         sample = self.nuscenes.get('sample', sample_token)
@@ -606,6 +638,7 @@ class NuScenesMapDataset(Dataset):
 #        occ_mask = np_mask[1]
 #        vis_mask = np_mask[0]
 #        
+        ## TODO
         vis_mask = vis_utils.get_visible_mask(intrinsics, sample_data['width'], 
                                   self.config.map_extents, self.config.map_resolution)
         vis_mask = np.flipud(vis_mask)

@@ -18,8 +18,9 @@ from src.data.utils import get_visible_mask, get_occlusion_mask, transform, \
     encode_binary_labels
 from src.data.nuscenes import utils as nusc_utils
 
-
+found = False
 def process_scene(j, nuscenes, map_data,map_api, all_centers,scene, config, loc_dict, obj_dict, output_seg_root, output_line_root):
+    global found
     logging.error('WORKING ON SCENE ' + str(scene['name']))
     # Get the map corresponding to the current sample data
     log = nuscenes.get('log', scene['log_token'])
@@ -33,10 +34,13 @@ def process_scene(j, nuscenes, map_data,map_api, all_centers,scene, config, loc_
     centers = all_centers[log['location']]
     # Iterate over samples
     first_sample_token = scene['first_sample_token']
+    
     for i, sample in enumerate(nusc_utils.iterate_samples(nuscenes, first_sample_token)):
-        # print(f"")
-        # if sample['token'] != "cd21dbfc3bd749c7b10a5c42562e0c42":
-        #     continue
+        print(f"sample:{sample['token']}")
+        if (found) or sample['token'] == "c1676a2feac74eee8aa38ca3901787d6":
+            found = True
+        else:
+            continue
         print(f"sample:{sample['token']}")
         sample_data = nuscenes.get('sample_data', sample['data']['CAM_FRONT'])
         dataroot = '../nuscenes/mini/'
@@ -67,7 +71,8 @@ def process_scene(j, nuscenes, map_data,map_api, all_centers,scene, config, loc_
 
 
 def process_sample(j,i, nuscenes, map_data, sample, config,centers,loc_dict, obj_dict, output_seg_root, output_line_root ):
-
+    
+    
     # Load the lidar point cloud associated with this sample
     lidar_data = nuscenes.get('sample_data', sample['data']['LIDAR_TOP'])
     lidar_pcl = nusc_utils.load_point_cloud(nuscenes, lidar_data)
@@ -96,6 +101,7 @@ def process_sample_data(j, i, nuscenes, map_data, sample_data, lidar, config,cen
                                             sample_data, 
                                             config.map_extents, 
                                             config.map_resolution)
+
 #    masks = np.concatenate([map_masks, obj_masks], axis=0)
     masks = obj_masks
     # Ignore regions of the BEV which are outside the image
@@ -131,6 +137,7 @@ def process_sample_data(j, i, nuscenes, map_data, sample_data, lidar, config,cen
     print("coming here")
     # img_centers = np.flipud(img_centers)
     print(sample_data['token'])
+    
     img_centers = cv2.normalize(img_centers, None, alpha=0, beta=255, norm_type=cv2.NORM_MINMAX, dtype=cv2.CV_8U)
 
     # print(img_centers[80:100,95:110])

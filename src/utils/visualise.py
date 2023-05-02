@@ -748,6 +748,9 @@ def get_merged_lines(coeffs1,coeffs2):
 
 def visual_est(images,targets,save_path,name=None):
  
+    print(len(images))
+    print(images.shape)
+    print(images[0].shape)
     
     for b in range(len(targets)):
         

@@ -63,6 +63,7 @@ def process_sample_data(nuscenes, map_data, sample_data, lidar, config,centers, 
 #                                         config.map_resolution)
 #    
     # Render dynamic object masks
+    # TODO is this for sample_data is it for camera or is it for entire dataframe
     obj_entries, obj_masks = nusc_utils.get_object_masks(nuscenes, 
                                             sample_data, 
                                             config.map_extents, 
@@ -261,6 +262,11 @@ if __name__ == '__main__':
     # Iterate over NuScene scenes
     print("\nGenerating labels...")
     for scene in nuscenes.scene:
+        if scene['token'] != "cd21dbfc3bd749c7b10a5c42562e0c42":
+            continue
+        else:
+            print("I am here")
+            exit(1)
         process_scene(nuscenes, map_data,my_map_apis, new_dict, scene, config, loc_dict, obj_dict, output_seg_root, output_line_root)
         
     np.save(config.loc_dict_path, loc_dict.get_res())

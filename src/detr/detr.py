@@ -205,7 +205,7 @@ class DETR(nn.Module):
     
     def forward(self, samples,calib, extrinsics, left_traffic=False):
         """ The forward expects a NestedTensor, which consists of:
-               - samples.tensor: batched images, of shape [batch_size x 3 x H x W]
+               - samples.tensor: batched images, of shape [batch_size x 3 x H x W] # 1X3XHXW
                - samples.mask: a binary mask of shape [batch_size x H x W], containing 1 on padded pixels
 
             It returns a dict with the following elements:
